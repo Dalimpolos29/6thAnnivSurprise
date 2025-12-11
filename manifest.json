@@ -1,0 +1,80 @@
+{
+  "name": "Den & Anna",
+  "short_name": "Den & Anna",
+  "description": "Our Love Story - A private space for Dennis and Anna",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#fffbf7",
+  "theme_color": "#ec4899",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "images/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "personalization"],
+  "shortcuts": [
+    {
+      "name": "Chat",
+      "short_name": "Chat",
+      "description": "Open chat",
+      "url": "/chat.html",
+      "icons": [{ "src": "images/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Gallery",
+      "short_name": "Gallery",
+      "description": "View memories",
+      "url": "/gallery.html",
+      "icons": [{ "src": "images/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

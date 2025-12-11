@@ -1,193 +1,628 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌷Den & Anna🌷</title>
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="Den & Anna - Our Love Story">
+
+  <title>Den & Anna</title>
+
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <style>
+    /* Login Page Specific Styles */
+    .login-page {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated Background */
+    .bg-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.5;
+      filter: blur(60px);
+    }
+
+    .bg-shape-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--primary-300);
+      top: -100px;
+      right: -100px;
+      animation: floatShape1 20s ease-in-out infinite;
+    }
+
+    .bg-shape-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--accent-300);
+      bottom: -50px;
+      left: -50px;
+      animation: floatShape2 25s ease-in-out infinite;
+    }
+
+    .bg-shape-3 {
+      width: 200px;
+      height: 200px;
+      background: var(--secondary-200);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: floatShape3 15s ease-in-out infinite;
+    }
+
+    @keyframes floatShape1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(-30px, 50px) scale(1.1); }
+      66% { transform: translate(20px, -30px) scale(0.9); }
+    }
+
+    @keyframes floatShape2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(0.9); }
+      66% { transform: translate(-20px, 40px) scale(1.1); }
+    }
+
+    @keyframes floatShape3 {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.3); }
+    }
+
+    /* Photo Collage Background */
+    .photo-collage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+      padding: 4px;
+      opacity: 0.15;
+      filter: grayscale(30%);
+    }
+
+    .photo-collage img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Login Container */
+    .login-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 400px;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    /* Profile Section */
+    .profile-section {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+
+    .profile-images {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: var(--space-6);
+    }
+
+    .profile-image {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-full);
+      object-fit: cover;
+      border: 3px solid var(--surface);
+      box-shadow: var(--shadow-xl);
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-image:first-child {
+      transform: translateX(10px);
+    }
+
+    .profile-image:last-child {
+      transform: translateX(-10px);
+    }
+
+    .heart-icon {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      font-size: 1.5rem;
+      animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
+    .profile-title {
+      font-family: var(--font-display);
+      font-size: var(--text-4xl);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+      background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .profile-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--text-base);
+      font-style: italic;
+      font-family: var(--font-display);
+    }
+
+    /* Login Card */
+    .login-card {
+      background: var(--surface);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-2xl), var(--shadow-glow);
+    }
+
+    .login-title {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      text-align: center;
+      margin-bottom: var(--space-6);
+      color: var(--text-primary);
+    }
+
+    .user-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+
+    .user-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      background: var(--background);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .user-option:hover {
+      border-color: var(--primary-300);
+      background: var(--primary-50);
+    }
+
+    .user-option.selected {
+      border-color: var(--primary-500);
+      background: var(--primary-50);
+      box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+    }
+
+    .user-option img {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-full);
+      object-fit: cover;
+    }
+
+    .user-option span {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .password-section {
+      margin-bottom: var(--space-6);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: var(--space-4);
+      font-size: var(--text-lg);
+    }
+
+    /* Error Message */
+    .error-message {
+      text-align: center;
+      color: var(--secondary-500);
+      font-size: var(--text-sm);
+      margin-top: var(--space-4);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all var(--transition-base);
+    }
+
+    .error-message.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Footer */
+    .login-footer {
+      text-align: center;
+      margin-top: var(--space-6);
+      color: var(--text-muted);
+      font-size: var(--text-sm);
+    }
+
+    .login-footer span {
+      color: var(--primary-500);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .profile-title {
+        font-size: var(--text-3xl);
+      }
+
+      .login-card {
+        padding: var(--space-6);
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Animated Background Shapes -->
+  <div class="bg-shapes">
+    <div class="bg-shape bg-shape-1"></div>
+    <div class="bg-shape bg-shape-2"></div>
+    <div class="bg-shape bg-shape-3"></div>
+  </div>
 
-<div class="container">
-    <!-- Circular image -->
-    <div class="circle-image">
-        <img src="photos/Image77.jpg" alt="Profile Image">
+  <!-- Photo Collage Background -->
+  <div class="photo-collage" id="photoCollage"></div>
+
+  <!-- Floating Hearts -->
+  <div class="particles-container" id="particles"></div>
+
+  <!-- Login Page -->
+  <div class="login-page">
+    <div class="login-container" id="loginContainer">
+
+      <!-- Profile Section -->
+      <div class="profile-section">
+        <div class="profile-images">
+          <img src="photos/Image1.jpg" alt="Dennis" class="profile-image" id="profileDennis">
+          <span class="heart-icon">❤️</span>
+          <img src="photos/Image2.jpg" alt="Anna" class="profile-image" id="profileAnna">
+        </div>
+        <h1 class="profile-title">Den & Anna</h1>
+        <p class="profile-subtitle">Our Love Story</p>
+      </div>
+
+      <!-- Login Card -->
+      <div class="login-card">
+        <h2 class="login-title">Welcome Back</h2>
+
+        <form id="loginForm">
+          <!-- User Selection -->
+          <div class="user-select">
+            <label class="user-option" data-user="dennis">
+              <input type="radio" name="username" value="Dennis" hidden>
+              <img src="photos/Image1.jpg" alt="Dennis">
+              <span>Dennis</span>
+            </label>
+            <label class="user-option" data-user="anna">
+              <input type="radio" name="username" value="Anna" hidden>
+              <img src="photos/Image2.jpg" alt="Anna">
+              <span>Anna</span>
+            </label>
+          </div>
+
+          <!-- Password -->
+          <div class="password-section">
+            <div class="input-group">
+              <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <input
+                type="password"
+                class="form-input"
+                id="password"
+                placeholder="Enter password"
+                autocomplete="current-password"
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-lg login-btn btn-shine" id="loginBtn">
+            <span>Enter Our World</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- Error Message -->
+          <p class="error-message" id="errorMessage">Hmm, that's not right. Try again!</p>
+        </form>
+
+        <p class="login-footer">
+          Since <span>May 2, 2018</span> ❤️
+        </p>
+      </div>
     </div>
-    <!-- "Den & Anna" text -->
-    <h2>🌷Den & Anna🌷</h2>
-    <!-- Login form -->
-    <form id="form">
-        <input type="text" placeholder="Anniversary" id="username">
-        <input type="password" placeholder="Password" id="password">
-        <button type="submit">Login</button>
-    </form>
-</div>
+  </div>
 
-<script src="script.js"></script>
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
 
-<div class="background">
-    <div class="container-fluid">
-        <div class="filmstrip-container">
-            <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-right">
-                    <img src="photos/Image63.jpg" alt="Image 63" class="img-fluid">
-                    <img src="photos/Image41.jpg" alt="Image 41" class="img-fluid">
-                    <img src="photos/Image12.jpg" alt="Image 12" class="img-fluid">
-                    <img src="photos/Image34.jpg" alt="Image 34" class="img-fluid">
-                    <img src="photos/Image5.jpg" alt="Image 5" class="img-fluid">
-                    <img src="photos/Image70.jpg" alt="Image 70" class="img-fluid">
-                    <img src="photos/Image48.jpg" alt="Image 48" class="img-fluid">
-                    <img src="photos/Image76.jpg" alt="Image 76" class="img-fluid">
-                    <img src="photos/Image21.jpg" alt="Image 21" class="img-fluid">
-                    <img src="photos/Image3.jpg" alt="Image 3" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <br>
-              <!-- Additional filmstrips below the first one -->
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-left">
-                    <img src="photos/Image17.jpg" alt="Image 17" class="img-fluid">
-                    <img src="photos/Image54.jpg" alt="Image 54" class="img-fluid">
-                    <img src="photos/Image29.jpg" alt="Image 29" class="img-fluid">
-                    <img src="photos/Image10.jpg" alt="Image 10" class="img-fluid">
-                    <img src="photos/Image55.jpg" alt="Image 55" class="img-fluid">
-                    <img src="photos/Image81.jpg" alt="Image 81" class="img-fluid">
-                    <img src="photos/Image70.jpg" alt="Image 70" class="img-fluid">
-                    <img src="photos/Image4.jpg" alt="Image 4" class="img-fluid">
-                    <img src="photos/Image69.jpg" alt="Image 69" class="img-fluid">
-                    <img src="photos/Image49.jpg" alt="Image 49" class="img-fluid">
-                  </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones -->
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-right">
-                    <img src="photos/Image53.jpg" alt="Image 53" class="img-fluid">
-                    <img src="photos/Image37.jpg" alt="Image 37" class="img-fluid">
-                    <img src="photos/Image24.jpg" alt="Image 24" class="img-fluid">
-                    <img src="photos/Image15.jpg" alt="Image 15" class="img-fluid">
-                    <img src="photos/Image9.jpg" alt="Image 9" class="img-fluid">
-                    <img src="photos/Image44.jpg" alt="Image 44" class="img-fluid">
-                    <img src="photos/Image64.jpg" alt="Image 64" class="img-fluid">
-                    <img src="photos/Image25.jpg" alt="Image 25" class="img-fluid">
-                    <img src="photos/Image80.jpg" alt="Image 80" class="img-fluid">
-                    <img src="photos/Image58.jpg" alt="Image 58" class="img-fluid">
+  <script>
+    // Initialize Login Page
+    function initLoginPage() {
+      // Check if already logged in
+      if (isLoggedIn()) {
+        window.location.href = 'home.html';
+        return;
+      }
 
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-left">
-                    <img src="photos/Image83.jpg" alt="Image 83" class="img-fluid">
-                    <img src="photos/Image20.jpg" alt="Image 20" class="img-fluid">
-                    <img src="photos/Image11.jpg" alt="Image 11" class="img-fluid">
-                    <img src="photos/Image42.jpg" alt="Image 42" class="img-fluid">
-                    <img src="photos/Image60.jpg" alt="Image 60" class="img-fluid">
-                    <img src="photos/Image19.jpg" alt="Image 19" class="img-fluid">
-                    <img src="photos/Image57.jpg" alt="Image 57" class="img-fluid">
-                    <img src="photos/Image74.jpg" alt="Image 74" class="img-fluid">
-                    <img src="photos/Image67.jpg" alt="Image 67" class="img-fluid">
-                    <img src="photos/Image46.jpg" alt="Image 46" class="img-fluid">
+      // Generate photo collage background
+      generatePhotoCollage();
 
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-right">
-                    <img src="photos/Image18.jpg" alt="Image 18" class="img-fluid">
-                    <img src="photos/Image84.jpg" alt="Image 84" class="img-fluid">
-                    <img src="photos/Image33.jpg" alt="Image 33" class="img-fluid">
-                    <img src="photos/Image68.jpg" alt="Image 68" class="img-fluid">
-                    <img src="photos/Image16.jpg" alt="Image 16" class="img-fluid">
-                    <img src="photos/Image78.jpg" alt="Image 78" class="img-fluid">
-                    <img src="photos/Image75.jpg" alt="Image 75" class="img-fluid">
-                    <img src="photos/Image50.jpg" alt="Image 50" class="img-fluid">
-                    <img src="photos/Image85.jpg" alt="Image 85" class="img-fluid">
-                    <img src="photos/Image7.jpg" alt="Image 7" class="img-fluid">
+      // Generate floating hearts
+      generateFloatingHearts();
 
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-left">
-                    <img src="photos/Image38.jpg" alt="Image 38" class="img-fluid">
-                    <img src="photos/Image79.jpg" alt="Image 79" class="img-fluid">
-                    <img src="photos/Image23.jpg" alt="Image 23" class="img-fluid">
-                    <img src="photos/Image8.jpg" alt="Image 8" class="img-fluid">
-                    <img src="photos/Image71.jpg" alt="Image 71" class="img-fluid">
-                    <img src="photos/Image14.jpg" alt="Image 14" class="img-fluid">
-                    <img src="photos/Image56.jpg" alt="Image 56" class="img-fluid">
-                    <img src="photos/Image82.jpg" alt="Image 82" class="img-fluid">
-                    <img src="photos/Image61.jpg" alt="Image 61" class="img-fluid">
-                    <img src="photos/Image31.jpg" alt="Image 31" class="img-fluid">
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-right">
-                    <img src="photos/Image26.jpg" alt="Image 26" class="img-fluid">
-                    <img src="photos/Image43.jpg" alt="Image 43" class="img-fluid">
-                    <img src="photos/Image62.jpg" alt="Image 62" class="img-fluid">
-                    <img src="photos/Image66.jpg" alt="Image 66" class="img-fluid">
-                    <img src="photos/Image36.jpg" alt="Image 36" class="img-fluid">
-                    <img src="photos/Image77.jpg" alt="Image 77" class="img-fluid">
-                    <img src="photos/Image35.jpg" alt="Image 35" class="img-fluid">
-                    <img src="photos/Image2.jpg" alt="Image 2" class="img-fluid">
-                    <img src="photos/Image22.jpg" alt="Image 22" class="img-fluid">
-                    <img src="photos/Image30.jpg" alt="Image 30" class="img-fluid">
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-left">
-                    <img src="photos/Image73.jpg" alt="Image 73" class="img-fluid">
-                    <img src="photos/Image45.jpg" alt="Image 45" class="img-fluid">
-                    <img src="photos/Image59.jpg" alt="Image 59" class="img-fluid">
-                    <img src="photos/Image28.jpg" alt="Image 28" class="img-fluid">
-                    <img src="photos/Image86.jpg" alt="Image 86" class="img-fluid">
-                    <img src="photos/Image32.jpg" alt="Image 32" class="img-fluid">
-                    <img src="photos/Image65.jpg" alt="Image 65" class="img-fluid">
-                    <img src="photos/Image40.jpg" alt="Image 40" class="img-fluid">
-                    <img src="photos/Image52.jpg" alt="Image 52" class="img-fluid">
-                    <img src="photos/Image72.jpg" alt="Image 72" class="img-fluid">
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-              <div class="row">
-                <div class="col p-0">
-                  <div class="filmstrip filmstrip-right">
-                    <img src="photos/Image47.jpg" alt="Image 47" class="img-fluid">
-                    <img src="photos/Image6.jpg" alt="Image 6" class="img-fluid">
-                    <img src="photos/Image39.jpg" alt="Image 39" class="img-fluid">
-                    <img src="photos/Image51.jpg" alt="Image 51" class="img-fluid">
-                    <img src="photos/Image1.jpg" alt="Image 1" class="img-fluid">
-                   </div>
-                </div>
-              </div>
-              <!-- Add more rows and filmstrips for the remaining ones --> 
-        <div class="filmstrip-overlay"></div> <!-- Overlay for tint and blur -->
-    </div>
-</div>
+      // Animate entrance
+      animateEntrance();
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+      // Setup user selection
+      setupUserSelection();
+
+      // Setup form submission
+      setupLoginForm();
+    }
+
+    function generatePhotoCollage() {
+      const collage = document.getElementById('photoCollage');
+      const photos = PHOTOS.slice(0, 24); // Use first 24 photos
+
+      photos.forEach((photo, index) => {
+        const img = document.createElement('img');
+        img.src = `photos/${photo}`;
+        img.alt = `Memory ${index + 1}`;
+        img.loading = 'lazy';
+        collage.appendChild(img);
+      });
+    }
+
+    function generateFloatingHearts() {
+      const container = document.getElementById('particles');
+      const hearts = ['❤️', '💕', '💖', '💗', '💓', '💝', '✨', '🌸'];
+
+      for (let i = 0; i < 20; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'particle';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = `${Math.random() * 100}%`;
+        heart.style.animationDelay = `${Math.random() * 15}s`;
+        heart.style.animationDuration = `${15 + Math.random() * 10}s`;
+        heart.style.fontSize = `${0.8 + Math.random() * 1}rem`;
+        container.appendChild(heart);
+      }
+    }
+
+    function animateEntrance() {
+      const container = document.getElementById('loginContainer');
+
+      gsap.to(container, {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        ease: 'power3.out',
+        delay: 0.3
+      });
+
+      // Animate profile images
+      gsap.from('.profile-image', {
+        scale: 0,
+        rotation: -180,
+        duration: 0.8,
+        ease: 'back.out(1.7)',
+        stagger: 0.2,
+        delay: 0.5
+      });
+
+      // Animate heart
+      gsap.from('.heart-icon', {
+        scale: 0,
+        duration: 0.5,
+        ease: 'back.out(2)',
+        delay: 1
+      });
+
+      // Animate title
+      gsap.from('.profile-title', {
+        opacity: 0,
+        y: 20,
+        duration: 0.6,
+        ease: 'power2.out',
+        delay: 0.8
+      });
+
+      // Animate login card
+      gsap.from('.login-card', {
+        opacity: 0,
+        y: 30,
+        duration: 0.8,
+        ease: 'power3.out',
+        delay: 1
+      });
+
+      // Animate user options
+      gsap.from('.user-option', {
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.5,
+        ease: 'back.out(1.7)',
+        stagger: 0.15,
+        delay: 1.3
+      });
+    }
+
+    function setupUserSelection() {
+      const userOptions = document.querySelectorAll('.user-option');
+
+      userOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          // Remove selected class from all
+          userOptions.forEach(opt => opt.classList.remove('selected'));
+
+          // Add selected class to clicked
+          option.classList.add('selected');
+
+          // Check the radio button
+          option.querySelector('input').checked = true;
+
+          // Animate selection
+          gsap.to(option, {
+            scale: 1.05,
+            duration: 0.2,
+            ease: 'power2.out',
+            yoyo: true,
+            repeat: 1
+          });
+
+          // Focus password field
+          document.getElementById('password').focus();
+        });
+      });
+    }
+
+    function setupLoginForm() {
+      const form = document.getElementById('loginForm');
+      const errorMessage = document.getElementById('errorMessage');
+      const loginBtn = document.getElementById('loginBtn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Get selected user
+        const selectedUser = document.querySelector('.user-option.selected');
+        if (!selectedUser) {
+          showError('Please select who you are');
+          shakeUserOptions();
+          return;
+        }
+
+        const username = selectedUser.querySelector('input').value;
+        const password = document.getElementById('password').value;
+
+        // Disable button
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = `
+          <div class="loading-spinner" style="width: 1.5rem; height: 1.5rem; border-width: 2px;"></div>
+        `;
+
+        try {
+          await loginUser(username, password);
+
+          // Success animation
+          gsap.to('.login-container', {
+            scale: 0.95,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'power2.in',
+            onComplete: () => {
+              window.location.href = 'home.html';
+            }
+          });
+
+        } catch (error) {
+          // Error animation
+          showError(error.message || 'Invalid credentials');
+          shakeForm();
+
+          // Reset button
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = `
+            <span>Enter Our World</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          `;
+        }
+      });
+    }
+
+    function showError(message) {
+      const errorMessage = document.getElementById('errorMessage');
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+
+      setTimeout(() => {
+        errorMessage.classList.remove('show');
+      }, 3000);
+    }
+
+    function shakeForm() {
+      gsap.to('.login-card', {
+        x: [-10, 10, -10, 10, 0],
+        duration: 0.4,
+        ease: 'power2.out'
+      });
+    }
+
+    function shakeUserOptions() {
+      gsap.to('.user-select', {
+        x: [-5, 5, -5, 5, 0],
+        duration: 0.3,
+        ease: 'power2.out'
+      });
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', initLoginPage);
+  </script>
 </body>
 </html>

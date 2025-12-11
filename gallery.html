@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <title>Gallery - Den & Anna</title>
+
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+  <!-- GSAP with ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <style>
+    /* Gallery Page Specific Styles */
+    .gallery-page {
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: calc(var(--bottom-nav-height) + var(--space-4));
+    }
+
+    /* Gallery Header */
+    .gallery-header {
+      text-align: center;
+      padding: var(--space-8) var(--space-4);
+      padding-top: calc(var(--space-8) + var(--safe-area-top));
+      position: relative;
+    }
+
+    .gallery-header-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: linear-gradient(180deg, var(--primary-100) 0%, transparent 100%);
+      z-index: -1;
+    }
+
+    .gallery-title {
+      font-family: var(--font-display);
+      font-size: var(--text-4xl);
+      margin-bottom: var(--space-2);
+      background: linear-gradient(135deg, var(--primary-600), var(--primary-400));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .gallery-subtitle {
+      color: var(--text-secondary);
+      font-size: var(--text-lg);
+      font-family: var(--font-display);
+      font-style: italic;
+    }
+
+    .gallery-stats {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      margin-top: var(--space-4);
+    }
+
+    .gallery-stat {
+      text-align: center;
+    }
+
+    .gallery-stat-value {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--primary-600);
+    }
+
+    .gallery-stat-label {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+    }
+
+    /* Masonry Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+
+    .gallery-item {
+      position: relative;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .gallery-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .gallery-item:active {
+      transform: scale(0.98);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var(--transition-slow);
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.1);
+    }
+
+    /* Different sizes for variety */
+    .gallery-item {
+      aspect-ratio: 1;
+    }
+
+    .gallery-item:nth-child(5n+1) {
+      grid-column: span 2;
+      aspect-ratio: 16/9;
+    }
+
+    .gallery-item:nth-child(7n+3) {
+      aspect-ratio: 3/4;
+    }
+
+    /* Overlay on hover */
+    .gallery-item::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .gallery-item:hover::after {
+      opacity: 1;
+    }
+
+    .gallery-item-icon {
+      position: absolute;
+      bottom: var(--space-3);
+      right: var(--space-3);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all var(--transition-base);
+      z-index: 2;
+    }
+
+    .gallery-item:hover .gallery-item-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-base);
+    }
+
+    .lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-image {
+      max-width: 100%;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: var(--radius-lg);
+      transform: scale(0.9);
+      transition: transform var(--transition-base);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .lightbox.active .lightbox-image {
+      transform: scale(1);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      font-size: var(--text-2xl);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-base);
+      z-index: 10;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: rotate(90deg);
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      font-size: var(--text-xl);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-base);
+      z-index: 10;
+    }
+
+    .lightbox-nav:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .lightbox-prev { left: var(--space-4); }
+    .lightbox-next { right: var(--space-4); }
+
+    .lightbox-counter {
+      position: absolute;
+      bottom: var(--space-4);
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: var(--text-sm);
+      background: rgba(0, 0, 0, 0.5);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+    }
+
+    /* Swipe indicator */
+    .swipe-hint {
+      position: fixed;
+      bottom: calc(var(--bottom-nav-height) + var(--space-8));
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-lg);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      opacity: 0;
+      animation: fadeInUp 0.5s ease-out 2s forwards;
+    }
+
+    .swipe-hint svg {
+      animation: swipeHint 1.5s ease-in-out infinite;
+    }
+
+    @keyframes swipeHint {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(5px); }
+    }
+
+    /* Floating Hearts */
+    .particles-container {
+      pointer-events: none;
+    }
+
+    /* Loading more indicator */
+    .load-more {
+      display: flex;
+      justify-content: center;
+      padding: var(--space-6);
+    }
+
+    /* Responsive */
+    @media (min-width: 640px) {
+      .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .gallery-item:nth-child(5n+1) {
+        grid-column: span 2;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .gallery-grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background -->
+  <div class="mesh-gradient"></div>
+
+  <!-- Floating Hearts -->
+  <div class="particles-container" id="particles"></div>
+
+  <!-- Gallery Page -->
+  <div class="gallery-page">
+
+    <!-- Header -->
+    <header class="gallery-header">
+      <div class="gallery-header-bg"></div>
+      <h1 class="gallery-title">Our Memories</h1>
+      <p class="gallery-subtitle">Every moment with you is a treasure</p>
+      <div class="gallery-stats">
+        <div class="gallery-stat">
+          <span class="gallery-stat-value" id="photoCount">0</span>
+          <span class="gallery-stat-label">Photos</span>
+        </div>
+        <div class="gallery-stat">
+          <span class="gallery-stat-value" id="memoryYears">0</span>
+          <span class="gallery-stat-label">Years</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Gallery Grid -->
+    <div class="gallery-grid" id="galleryGrid"></div>
+
+    <!-- Swipe Hint -->
+    <div class="swipe-hint" id="swipeHint">
+      <span>Tap to view</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+
+    <div class="lightbox-content">
+      <img src="" alt="Memory" class="lightbox-image" id="lightboxImage">
+    </div>
+
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </button>
+
+    <div class="lightbox-counter" id="lightboxCounter">1 / 87</div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span>Home</span>
+    </a>
+    <a href="chat.html" class="nav-item">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span>Chat</span>
+    </a>
+    <a href="gallery.html" class="nav-item active">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <span>Gallery</span>
+    </a>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Gallery State
+    let currentIndex = 0;
+    let photos = [];
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    // Initialize Gallery Page
+    function initGalleryPage() {
+      // Check authentication
+      if (!isLoggedIn()) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Setup photos
+      photos = [...PHOTOS];
+
+      // Update stats
+      updateStats();
+
+      // Render gallery
+      renderGallery();
+
+      // Setup lightbox
+      setupLightbox();
+
+      // Generate floating hearts
+      generateFloatingHearts();
+
+      // Animate entrance
+      animateEntrance();
+
+      // Hide swipe hint after interaction
+      setTimeout(() => {
+        document.getElementById('swipeHint').style.display = 'none';
+      }, 5000);
+    }
+
+    function updateStats() {
+      document.getElementById('photoCount').textContent = photos.length;
+
+      const now = new Date();
+      const anniversary = APP_CONFIG.anniversaryDate;
+      const years = now.getFullYear() - anniversary.getFullYear();
+      document.getElementById('memoryYears').textContent = years;
+    }
+
+    function renderGallery() {
+      const grid = document.getElementById('galleryGrid');
+
+      photos.forEach((photo, index) => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.dataset.index = index;
+
+        item.innerHTML = `
+          <img src="photos/${photo}" alt="Memory ${index + 1}" loading="lazy">
+          <div class="gallery-item-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-500)" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+          </div>
+        `;
+
+        item.addEventListener('click', () => openLightbox(index));
+        grid.appendChild(item);
+      });
+
+      // Setup scroll animations
+      setupScrollAnimations();
+    }
+
+    function setupScrollAnimations() {
+      gsap.registerPlugin(ScrollTrigger);
+
+      const items = document.querySelectorAll('.gallery-item');
+
+      items.forEach((item, index) => {
+        gsap.to(item, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: item,
+            start: 'top 90%',
+            toggleActions: 'play none none none'
+          },
+          delay: (index % 4) * 0.1
+        });
+      });
+    }
+
+    function setupLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      const closeBtn = document.getElementById('lightboxClose');
+      const prevBtn = document.getElementById('lightboxPrev');
+      const nextBtn = document.getElementById('lightboxNext');
+      const image = document.getElementById('lightboxImage');
+
+      // Close button
+      closeBtn.addEventListener('click', closeLightbox);
+
+      // Navigation buttons
+      prevBtn.addEventListener('click', () => navigateLightbox(-1));
+      nextBtn.addEventListener('click', () => navigateLightbox(1));
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('active')) return;
+
+        switch(e.key) {
+          case 'Escape':
+            closeLightbox();
+            break;
+          case 'ArrowLeft':
+            navigateLightbox(-1);
+            break;
+          case 'ArrowRight':
+            navigateLightbox(1);
+            break;
+        }
+      });
+
+      // Touch/swipe support
+      lightbox.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      });
+
+      lightbox.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+
+      // Click outside to close
+      lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+          closeLightbox();
+        }
+      });
+    }
+
+    function openLightbox(index) {
+      currentIndex = index;
+      const lightbox = document.getElementById('lightbox');
+      const image = document.getElementById('lightboxImage');
+      const counter = document.getElementById('lightboxCounter');
+
+      image.src = `photos/${photos[index]}`;
+      counter.textContent = `${index + 1} / ${photos.length}`;
+
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Animate image entrance
+      gsap.fromTo(image,
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.3, ease: 'power2.out' }
+      );
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      const image = document.getElementById('lightboxImage');
+
+      gsap.to(image, {
+        scale: 0.8,
+        opacity: 0,
+        duration: 0.2,
+        ease: 'power2.in',
+        onComplete: () => {
+          lightbox.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+
+    function navigateLightbox(direction) {
+      const image = document.getElementById('lightboxImage');
+      const counter = document.getElementById('lightboxCounter');
+
+      // Calculate new index
+      currentIndex = (currentIndex + direction + photos.length) % photos.length;
+
+      // Animate transition
+      const slideDirection = direction > 0 ? -30 : 30;
+
+      gsap.to(image, {
+        x: slideDirection,
+        opacity: 0,
+        duration: 0.15,
+        ease: 'power2.in',
+        onComplete: () => {
+          image.src = `photos/${photos[currentIndex]}`;
+          counter.textContent = `${currentIndex + 1} / ${photos.length}`;
+
+          gsap.fromTo(image,
+            { x: -slideDirection, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.2, ease: 'power2.out' }
+          );
+        }
+      });
+    }
+
+    function handleSwipe() {
+      const diff = touchStartX - touchEndX;
+      const threshold = 50;
+
+      if (Math.abs(diff) > threshold) {
+        if (diff > 0) {
+          // Swipe left - next
+          navigateLightbox(1);
+        } else {
+          // Swipe right - previous
+          navigateLightbox(-1);
+        }
+      }
+    }
+
+    function generateFloatingHearts() {
+      const container = document.getElementById('particles');
+      const hearts = ['❤️', '💕', '💖', '📸', '✨'];
+
+      for (let i = 0; i < 10; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'particle';
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = `${Math.random() * 100}%`;
+        heart.style.animationDelay = `${Math.random() * 15}s`;
+        heart.style.animationDuration = `${15 + Math.random() * 10}s`;
+        heart.style.fontSize = `${0.6 + Math.random() * 0.8}rem`;
+        container.appendChild(heart);
+      }
+    }
+
+    function animateEntrance() {
+      // Animate header
+      gsap.from('.gallery-header', {
+        opacity: 0,
+        y: -30,
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+
+      gsap.from('.gallery-title', {
+        opacity: 0,
+        y: 20,
+        duration: 0.6,
+        delay: 0.2,
+        ease: 'power2.out'
+      });
+
+      gsap.from('.gallery-subtitle', {
+        opacity: 0,
+        y: 20,
+        duration: 0.6,
+        delay: 0.3,
+        ease: 'power2.out'
+      });
+
+      gsap.from('.gallery-stat', {
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.5,
+        stagger: 0.1,
+        delay: 0.4,
+        ease: 'back.out(1.7)'
+      });
+
+      // Animate bottom nav
+      gsap.from('.bottom-nav', {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        delay: 0.5,
+        ease: 'power2.out'
+      });
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', initGalleryPage);
+  </script>
+</body>
+</html>
